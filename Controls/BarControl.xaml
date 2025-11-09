@@ -1,0 +1,23 @@
+﻿<UserControl x:Class="Hardware_Monitor.Controls.BarControl"
+             x:Name="rootControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Hardware_Monitor.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="30" d:DesignWidth="350">
+    <Grid Background="Transparent">
+        <!-- 背景条 -->
+        <Border BorderBrush="#FFE0E0E0" BorderThickness="2"/>
+        <!-- 前景条 -->
+        <Border x:Name="ForegroundBar"
+                Margin="2"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Stretch">
+            <Border.Background>
+                <SolidColorBrush x:Name="ForegroundBrush" Color="#0091FF"/>
+            </Border.Background>
+        </Border>
+    </Grid>
+</UserControl>

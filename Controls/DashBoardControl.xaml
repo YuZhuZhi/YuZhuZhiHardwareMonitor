@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="Hardware_Monitor.Controls.DashBoardControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Hardware_Monitor.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="200" d:DesignWidth="200">
+    <Grid>
+        <Canvas x:Name="DashboardCanvas" Background="Transparent">
+            <Line x:Name="pointer" X1="0" Y1="0" X2="0" Y2="-80"
+                  Stroke="Red" StrokeThickness="3" StrokeEndLineCap="Round"
+                  RenderTransformOrigin="0.5,1">
+                <Line.RenderTransform>
+                    <RotateTransform x:Name="pointerRotate" Angle="0"/>
+                </Line.RenderTransform>
+            </Line>
+            
+            <TextBlock x:Name="ValueText"
+                       Text="{Binding Value, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat={}{0:0}}"
+                       Style="{StaticResource LoadValueStyle}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
+        </Canvas>
+
+        <TextBlock Text="{Binding Value, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat={}{0:0}}"
+                   Style="{StaticResource LoadValueStyle}"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   Margin="0,-25,0,0"/>
+    </Grid>
+</UserControl>
