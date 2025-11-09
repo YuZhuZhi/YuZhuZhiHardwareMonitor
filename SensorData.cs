@@ -1,7 +1,8 @@
-﻿using System;
+﻿using LibreHardwareMonitor.Hardware;
+using System;
 using System.Collections.Generic;
 using System.Text;
-using LibreHardwareMonitor.Hardware;
+using System.Xml.Linq;
 
 namespace Hardware_Monitor
 {
@@ -201,12 +202,19 @@ namespace Hardware_Monitor
             foreach (var sensor in cpu.Sensors) {
                 switch (sensor.SensorType) {
                     case SensorType.Temperature:
-                        if (hasCPUPackageTemp)
+                        if (hasCPUPackageTemp && sensor.Name.Contains("Package", StringComparison.OrdinalIgnoreCase))
                             CPUTemperature = sensor.Value ?? 0;
-                        else if (hasCPUCoreAvgTemp)
+                        else if (!hasCPUPackageTemp && hasCPUCoreAvgTemp
+                            && (sensor.Name.Contains("Average", StringComparison.OrdinalIgnoreCase) || sensor.Name.Contains("Die (average)", StringComparison.OrdinalIgnoreCase)))
                             CPUTemperature = sensor.Value ?? 0;
-                        else
-                            CPUTemperature = 0;
+                        else if (!hasCPUPackageTemp && !hasCPUCoreAvgTemp
+                            && (sensor.Name.Contains("Core #1", StringComparison.OrdinalIgnoreCase) || sensor.Name.Contains("Max", StringComparison.OrdinalIgnoreCase)))
+                            CPUTemperature = sensor.Value ?? 0;
+                        else if (sensor.Name.Contains("Tctl", StringComparison.OrdinalIgnoreCase) ||
+                                sensor.Name.Contains("Tdie", StringComparison.OrdinalIgnoreCase))
+                            CPUTemperature = sensor.Value ?? 0;
+                        else if (CPUTemperature == 0)
+                            CPUTemperature = sensor.Value ?? 0;
                         break;
 
                     case SensorType.Load:
@@ -241,12 +249,14 @@ namespace Hardware_Monitor
             foreach (var sensor in gpu.Sensors) {
                 switch (sensor.SensorType) {
                     case SensorType.Temperature:
-                        if (hasGPUCoreTemp)
+                        if (hasGPUCoreTemp && sensor.Name.Contains("Core", StringComparison.OrdinalIgnoreCase))
                             GPUTemperature = sensor.Value ?? 0;
-                        else if (hasGPUHotSpotTemp)
+                        else if (!hasGPUCoreTemp && hasGPUHotSpotTemp && sensor.Name.Contains("Hot Spot", StringComparison.OrdinalIgnoreCase))
                             GPUTemperature = sensor.Value ?? 0;
-                        else
-                            GPUTemperature = 0;
+                        else if (sensor.Name.Contains("Temp", StringComparison.OrdinalIgnoreCase)) 
+                            GPUTemperature = sensor.Value ?? 0;
+                        else if (GPUTemperature == 0)
+                            GPUTemperature = sensor.Value ?? 0;
                         break;
 
                     case SensorType.Load:
