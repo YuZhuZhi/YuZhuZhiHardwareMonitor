@@ -94,6 +94,10 @@ namespace Hardware_Monitor
 
         private readonly Computer computer;
         private readonly bool hasDiscreteGpu;
+        private readonly bool hasCPUCoreAvgTemp;
+        private readonly bool hasCPUPackageTemp;
+        private readonly bool hasGPUHotSpotTemp;
+        private readonly bool hasGPUCoreTemp;
 
         public SensorData() {
             computer = new Computer {
@@ -104,11 +108,36 @@ namespace Hardware_Monitor
                 IsMotherboardEnabled = true
             };
             computer.Open();
+
             hasDiscreteGpu = false;
             foreach (var hw in computer.Hardware) {
                 if (hw.HardwareType == HardwareType.GpuAmd || hw.HardwareType == HardwareType.GpuNvidia) {
                     hasDiscreteGpu = true;
-                    break;
+                }
+
+                hw.Update();
+                foreach (var sensor in hw.Sensors) {
+                    switch (hw.HardwareType) {
+                        case HardwareType.Cpu:
+                            if (sensor.SensorType == SensorType.Temperature) {
+                                if (sensor.Name.Contains("Package", StringComparison.OrdinalIgnoreCase))
+                                    hasCPUPackageTemp = true;
+                                else if (sensor.Name.Contains("Core Average", StringComparison.OrdinalIgnoreCase))
+                                    hasCPUCoreAvgTemp = true;
+                            }
+                            break;
+
+                        case HardwareType.GpuAmd:
+                        case HardwareType.GpuNvidia:
+                        case HardwareType.GpuIntel:
+                            if (sensor.SensorType == SensorType.Temperature) {
+                                if (sensor.Name.Contains("Hot Spot", StringComparison.OrdinalIgnoreCase))
+                                    hasGPUHotSpotTemp = true;
+                                else if (sensor.Name.Contains("Core", StringComparison.OrdinalIgnoreCase))
+                                    hasGPUCoreTemp = true;
+                            }
+                            break;
+                    }
                 }
             }
         }
@@ -172,8 +201,12 @@ namespace Hardware_Monitor
             foreach (var sensor in cpu.Sensors) {
                 switch (sensor.SensorType) {
                     case SensorType.Temperature:
-                        if (sensor.Name.Contains("Package", StringComparison.OrdinalIgnoreCase))
+                        if (hasCPUPackageTemp)
                             CPUTemperature = sensor.Value ?? 0;
+                        else if (hasCPUCoreAvgTemp)
+                            CPUTemperature = sensor.Value ?? 0;
+                        else
+                            CPUTemperature = 0;
                         break;
 
                     case SensorType.Load:
@@ -208,7 +241,12 @@ namespace Hardware_Monitor
             foreach (var sensor in gpu.Sensors) {
                 switch (sensor.SensorType) {
                     case SensorType.Temperature:
-                        GPUTemperature = sensor.Value ?? 0;
+                        if (hasGPUCoreTemp)
+                            GPUTemperature = sensor.Value ?? 0;
+                        else if (hasGPUHotSpotTemp)
+                            GPUTemperature = sensor.Value ?? 0;
+                        else
+                            GPUTemperature = 0;
                         break;
 
                     case SensorType.Load:
