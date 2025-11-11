@@ -107,7 +107,7 @@ namespace Hardware_Monitor.Controls
                     TextBlock tb = new() {
                         Text = i.ToString(),
                         Style = (Style)FindResource("OrbitronStyle"),
-                        FontSize = Math.Max(8, radius * 0.05), // 可选：字体随表盘大小缩放
+                        FontSize = Math.Max(8, radius * 0.05),
                         TextAlignment = TextAlignment.Center,
                         SnapsToDevicePixels = true
                     };
@@ -116,17 +116,15 @@ namespace Hardware_Monitor.Controls
                     tb.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
                     Size ts = tb.DesiredSize;
 
-                    // 文本中心点（在弧线上），注意 Canvas 坐标系 Y 向下
+                    // 文本中心点（在弧线上）
                     double textRadius = radius - 22;
                     double textX = center.X + textRadius * Math.Cos(angle);
                     double textY = center.Y - textRadius * Math.Sin(angle);
 
                     // 将文本中心对齐到刻度点（用测量出来的宽高除以2）
-                    Canvas.SetLeft(tb, Math.Round(textX - ts.Width / 2));  // 用 Math.Round 做像素对齐
+                    Canvas.SetLeft(tb, Math.Round(textX - ts.Width / 2));
                     Canvas.SetTop(tb, Math.Round(textY - ts.Height / 2));
 
-                    // 可选：保持文字竖直（不随表盘旋转）
-                    // 如果你想文字沿弧旋转，取消下面注释并调整角度（通常不需要）
                     //double deg = angle * 180 / Math.PI;
                     //tb.RenderTransform = new RotateTransform(-deg, ts.Width / 2, ts.Height / 2);
 

@@ -13,4 +13,4 @@
 
 在右侧 Release 页面下载 .zip 压缩包，解压后运行 `HardwareMonitor.exe` 即可。
 
-由于设备适配不足，可能在部分设备上无法正常显示温度。请多提 Issue ，包含您的 CPU 和 GPU 型号，以便后续改进。 
+由于设备适配不足，可能在部分设备上无法正常显示温度。请多提 Issue ，包含您的 CPU 和 GPU 型号，以提交 .exe 所在目录下的 `HardwareList.log`为宜，以便后续改进。 

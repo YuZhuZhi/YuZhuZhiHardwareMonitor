@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -26,6 +27,43 @@ namespace Hardware_Monitor.ViewModel
         public SensorDataVM() {
             _sensorData = new SensorData();
             Refresh();
+
+            try {
+                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "HardwareList.log");
+                using (var writer = new StreamWriter(logPath, false, Encoding.UTF8)) {
+                    writer.WriteLine($"[Hardware Scan Log] Generated Time: {DateTime.Now}");
+                    writer.WriteLine("------------------------------------------------------------");
+
+                    var computerField = typeof(SensorData).GetField("computer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (computerField != null) {
+                        var computer = computerField.GetValue(_sensorData) as LibreHardwareMonitor.Hardware.Computer;
+                        if (computer != null) {
+                            foreach (var hw in computer.Hardware) {
+                                hw.Update();
+                                writer.WriteLine($"[HW] {hw.HardwareType} - {hw.Name}");
+
+                                foreach (var sensor in hw.Sensors) {
+                                    writer.WriteLine($"  {sensor.SensorType,-12} | {sensor.Name,-40} | {sensor.Value,8:F2}");
+                                }
+
+                                foreach (var sub in hw.SubHardware) {
+                                    sub.Update();
+                                    writer.WriteLine($"  [SubHW] {sub.HardwareType} - {sub.Name}");
+                                    foreach (var sensor in sub.Sensors) {
+                                        writer.WriteLine($"    {sensor.SensorType,-12} | {sensor.Name,-40} | {sensor.Value,8:F2}");
+                                    }
+                                }
+
+                                writer.WriteLine();
+                            }
+                        }
+                    }
+
+                    writer.WriteLine("------------------------------------------------------------");
+                }
+            } catch (Exception ex) {
+                Console.WriteLine($"Generate HardwareList.log Failed: {ex.Message}");
+            }
         }
 
         public void Refresh() {
