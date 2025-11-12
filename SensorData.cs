@@ -100,6 +100,9 @@ namespace Hardware_Monitor
         private readonly bool hasGPUHotSpotTemp;
         private readonly bool hasGPUCoreTemp;
 
+        private bool isCPUTempUpdated = false;
+        private bool isGPUTempUpdated = false;
+
         public SensorData() {
             computer = new Computer {
                 IsCpuEnabled = true,
@@ -196,25 +199,41 @@ namespace Hardware_Monitor
                         UpdateMotherboardSensors(sub);
                 }
             }
+
+            isCPUTempUpdated = false;
+            isGPUTempUpdated = false;
         }
 
         private void UpdateCpuSensors(IHardware cpu) {
             foreach (var sensor in cpu.Sensors) {
                 switch (sensor.SensorType) {
                     case SensorType.Temperature:
-                        if (hasCPUPackageTemp && sensor.Name.Contains("Package", StringComparison.OrdinalIgnoreCase))
+                        if (isCPUTempUpdated) {
+                            break;
+                        }
+                        else if (hasCPUPackageTemp && sensor.Name.Contains("Package", StringComparison.OrdinalIgnoreCase)) {
                             CPUTemperature = sensor.Value ?? 0;
+                            isCPUTempUpdated = true;
+                        }
                         else if (!hasCPUPackageTemp && hasCPUCoreAvgTemp
-                            && (sensor.Name.Contains("Average", StringComparison.OrdinalIgnoreCase) || sensor.Name.Contains("Die (average)", StringComparison.OrdinalIgnoreCase)))
+                            && (sensor.Name.Contains("Average", StringComparison.OrdinalIgnoreCase) || sensor.Name.Contains("Die (average)", StringComparison.OrdinalIgnoreCase))) {
                             CPUTemperature = sensor.Value ?? 0;
+                            isCPUTempUpdated = true;
+                        }
                         else if (!hasCPUPackageTemp && !hasCPUCoreAvgTemp
-                            && (sensor.Name.Contains("Core #1", StringComparison.OrdinalIgnoreCase) || sensor.Name.Contains("Max", StringComparison.OrdinalIgnoreCase)))
+                            && (sensor.Name.Contains("Core #1", StringComparison.OrdinalIgnoreCase) || sensor.Name.Contains("Max", StringComparison.OrdinalIgnoreCase))) {
                             CPUTemperature = sensor.Value ?? 0;
+                            isCPUTempUpdated = true;
+                        }
                         else if (sensor.Name.Contains("Tctl", StringComparison.OrdinalIgnoreCase) ||
-                                sensor.Name.Contains("Tdie", StringComparison.OrdinalIgnoreCase))
+                                sensor.Name.Contains("Tdie", StringComparison.OrdinalIgnoreCase)) {
                             CPUTemperature = sensor.Value ?? 0;
-                        else if (CPUTemperature == 0)
+                            isCPUTempUpdated = true;
+                        }
+                        else if (CPUTemperature == 0) {
                             CPUTemperature = sensor.Value ?? 0;
+                            isCPUTempUpdated = true;
+                        }
                         break;
 
                     case SensorType.Load:
@@ -249,14 +268,29 @@ namespace Hardware_Monitor
             foreach (var sensor in gpu.Sensors) {
                 switch (sensor.SensorType) {
                     case SensorType.Temperature:
-                        if (hasGPUCoreTemp && sensor.Name.Contains("Core", StringComparison.OrdinalIgnoreCase))
+                        if (isGPUTempUpdated) {
+                            break;
+                        }
+                        else if (hasGPUCoreTemp && sensor.Name.Contains("Core", StringComparison.OrdinalIgnoreCase)) {
                             GPUTemperature = sensor.Value ?? 0;
-                        else if (!hasGPUCoreTemp && hasGPUHotSpotTemp && sensor.Name.Contains("Hot Spot", StringComparison.OrdinalIgnoreCase))
+                            isGPUTempUpdated = true;
+                        }
+                        else if (!hasGPUCoreTemp && hasGPUHotSpotTemp && sensor.Name.Contains("Hot Spot", StringComparison.OrdinalIgnoreCase)) {
                             GPUTemperature = sensor.Value ?? 0;
-                        else if (sensor.Name.Contains("Temp", StringComparison.OrdinalIgnoreCase)) 
+                            isGPUTempUpdated = true;
+                        }
+                        else if (sensor.Name.Contains("Temp", StringComparison.OrdinalIgnoreCase) && (GPUTemperature == 0)) {
                             GPUTemperature = sensor.Value ?? 0;
-                        else if (GPUTemperature == 0)
+                            isGPUTempUpdated = true;
+                        }
+                        else if (!hasDiscreteGpu) {
+                            GPUTemperature = CPUTemperature;
+                            isGPUTempUpdated = true;
+                        }
+                        else if (GPUTemperature == 0) {
                             GPUTemperature = sensor.Value ?? 0;
+                            isGPUTempUpdated = true;
+                        }
                         break;
 
                     case SensorType.Load:
@@ -267,6 +301,7 @@ namespace Hardware_Monitor
                     case SensorType.Power:
                         if (sensor.Name.Contains("GPU Package", StringComparison.OrdinalIgnoreCase))
                             GPUPower = sensor.Value ?? 0;
+
                         break;
 
                     case SensorType.Fan:
